@@ -37,6 +37,8 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
+
+    //stroring the interview in Firestore
     await db.collection("interviews").add(interview);
 
     return Response.json({ success: true }, { status: 200 });
