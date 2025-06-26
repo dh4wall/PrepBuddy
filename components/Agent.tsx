@@ -28,6 +28,7 @@ const Agent = ({
   feedbackId,
   type,
   questions,
+  profileImage, // ✅ Accept it here
 }: AgentProps) => {
   const router = useRouter();
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -36,34 +37,17 @@ const Agent = ({
   const [lastMessage, setLastMessage] = useState<string>("");
 
   useEffect(() => {
-    const onCallStart = () => {
-      setCallStatus(CallStatus.ACTIVE);
-    };
-
-    const onCallEnd = () => {
-      setCallStatus(CallStatus.FINISHED);
-    };
-
+    const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
+    const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
     const onMessage = (message: Message) => {
       if (message.type === "transcript" && message.transcriptType === "final") {
         const newMessage = { role: message.role, content: message.transcript };
         setMessages((prev) => [...prev, newMessage]);
       }
     };
-
-    const onSpeechStart = () => {
-      console.log("speech start");
-      setIsSpeaking(true);
-    };
-
-    const onSpeechEnd = () => {
-      console.log("speech end");
-      setIsSpeaking(false);
-    };
-
-    const onError = (error: Error) => {
-      console.log("Error:", error);
-    };
+    const onSpeechStart = () => setIsSpeaking(true);
+    const onSpeechEnd = () => setIsSpeaking(false);
+    const onError = (error: Error) => console.log("Error:", error);
 
     vapi.on("call-start", onCallStart);
     vapi.on("call-end", onCallEnd);
@@ -88,8 +72,6 @@ const Agent = ({
     }
 
     const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-      console.log("handleGenerateFeedback");
-
       const { success, feedbackId: id } = await createFeedback({
         interviewId: interviewId!,
         userId: userId!,
@@ -119,35 +101,24 @@ const Agent = ({
 
     if (type === "generate") {
       await vapi.start(
-        undefined, // sessionId
-        undefined, // agentId
-        undefined, // toolId
-        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // workflowId
-        {
-          variableValues: {
-            username: userName,
-            userid: userId,
-          },
-        }
+        undefined,
+        undefined,
+        undefined,
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+        { variableValues: { username: userName, userid: userId } }
       );
     } else {
       let formattedQuestions = "";
       if (questions) {
-        formattedQuestions = questions
-          .map((question) => `- ${question}`)
-          .join("\n");
+        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
       }
 
       await vapi.start(
-        undefined, // sessionId
-        interviewer, // agentId
-        undefined, // toolId
-        undefined, // workflowId
-        {
-          variableValues: {
-            questions: formattedQuestions,
-          },
-        }
+        undefined,
+        interviewer,
+        undefined,
+        undefined,
+        { variableValues: { questions: formattedQuestions } }
       );
     }
   };
@@ -160,7 +131,6 @@ const Agent = ({
   return (
     <>
       <div className="call-view">
-        {/* AI Interviewer Card */}
         <div className="card-interviewer">
           <div className="avatar">
             <Image
@@ -175,14 +145,13 @@ const Agent = ({
           <h3>AI Interviewer</h3>
         </div>
 
-        {/* User Profile Card */}
         <div className="card-border">
           <div className="card-content">
             <Image
-              src="/user-avatar.png"
+              src={profileImage || "/user-avatar.png"} // ✅ Use passed image here
               alt="profile-image"
-              width={539}
-              height={539}
+              width={120}
+              height={120}
               className="rounded-full object-cover size-[120px]"
             />
             <h3>{userName}</h3>
@@ -216,9 +185,7 @@ const Agent = ({
               )}
             />
             <span className="relative">
-              {callStatus === "INACTIVE" || callStatus === "FINISHED"
-                ? "Call"
-                : ". . ."}
+              {callStatus === "INACTIVE" || callStatus === "FINISHED" ? "Call" : ". . ."}
             </span>
           </button>
         ) : (
