@@ -97,31 +97,37 @@ const Agent = ({
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
   const handleCall = async () => {
-    setCallStatus(CallStatus.CONNECTING);
+  setCallStatus(CallStatus.CONNECTING);
 
-    if (type === "generate") {
-      await vapi.start(
-        undefined,
-        undefined,
-        undefined,
-        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
-        { variableValues: { username: userName, userid: userId } }
-      );
-    } else {
-      let formattedQuestions = "";
-      if (questions) {
-        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
+  if (type === "generate") {
+    // ✅ Correct workflow call
+    await vapi.start(
+      undefined, // sessionId
+      undefined, // agentId
+      undefined, // toolId
+      process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+      {
+        variableValues: {
+          username: userName,
+          userid: userId,
+        },
       }
-
-      await vapi.start(
-        undefined,
-        interviewer,
-        undefined,
-        undefined,
-        { variableValues: { questions: formattedQuestions } }
-      );
+    );
+  } else {
+    let formattedQuestions = "";
+    if (questions) {
+      formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
     }
-  };
+
+    // ✅ Correct agent call with new object syntax
+    await vapi.start(interviewer, {
+      variableValues: {
+        questions: formattedQuestions,
+      },
+    });
+  }
+};
+
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
