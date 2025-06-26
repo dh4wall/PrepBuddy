@@ -17,9 +17,13 @@ function initFirebaseAdmin() {
     });
   }
 
+  const db = getFirestore();
+  // Enable ignoring undefined properties globally (optional)
+  db.settings({ ignoreUndefinedProperties: true });
+
   return {
     auth: getAuth(),
-    db: getFirestore(),
+    db,
   };
 }
 

@@ -39,8 +39,8 @@ export async function createFeedback(params: CreateFeedbackParams) {
     });
 
     const feedback = {
-      interviewId: interviewId,
-      userId: userId,
+      interviewId,
+      userId,
       totalScore: object.totalScore,
       categoryScores: object.categoryScores,
       strengths: object.strengths,
@@ -67,9 +67,14 @@ export async function createFeedback(params: CreateFeedbackParams) {
 }
 
 export async function getInterviewById(id: string): Promise<Interview | null> {
-  const interview = await db.collection("interviews").doc(id).get();
-
-  return interview.data() as Interview | null;
+  try {
+    const interviewDoc = await db.collection("interviews").doc(id).get();
+    if (!interviewDoc.exists) return null;
+    return interviewDoc.data() as Interview;
+  } catch (error) {
+    console.error("Error fetching interview by ID:", error);
+    return null;
+  }
 }
 
 export async function getFeedbackByInterviewId(
@@ -77,17 +82,22 @@ export async function getFeedbackByInterviewId(
 ): Promise<Feedback | null> {
   const { interviewId, userId } = params;
 
-  const querySnapshot = await db
-    .collection("feedback")
-    .where("interviewId", "==", interviewId)
-    .where("userId", "==", userId)
-    .limit(1)
-    .get();
+  try {
+    const querySnapshot = await db
+      .collection("feedback")
+      .where("interviewId", "==", interviewId)
+      .where("userId", "==", userId)
+      .limit(1)
+      .get();
 
-  if (querySnapshot.empty) return null;
+    if (querySnapshot.empty) return null;
 
-  const feedbackDoc = querySnapshot.docs[0];
-  return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+    const feedbackDoc = querySnapshot.docs[0];
+    return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+  } catch (error) {
+    console.error("Error fetching feedback by interviewId:", error);
+    return null;
+  }
 }
 
 export async function getLatestInterviews(
@@ -95,31 +105,53 @@ export async function getLatestInterviews(
 ): Promise<Interview[] | null> {
   const { userId, limit = 20 } = params;
 
-  const interviews = await db
-    .collection("interviews")
-    .orderBy("createdAt", "desc")
-    .where("finalized", "==", true)
-    .where("userId", "!=", userId)
-    .limit(limit)
-    .get();
+  if (!userId) {
+    console.warn("getLatestInterviews called without userId");
+    return null;
+  }
 
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[];
+  try {
+    // Firestore requires orderBy on the field with inequality filter
+    const snapshot = await db
+      .collection("interviews")
+      .where("finalized", "==", true)
+      .where("userId", "!=", userId)
+      .orderBy("userId") // Required when using != filter on userId
+      .orderBy("createdAt", "desc") // Secondary ordering
+      .limit(limit)
+      .get();
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Interview[];
+  } catch (error) {
+    console.error("Error fetching latest interviews:", error);
+    return null;
+  }
 }
 
 export async function getInterviewsByUserId(
-  userId: string
+  userId: string | undefined
 ): Promise<Interview[] | null> {
-  const interviews = await db
-    .collection("interviews")
-    .where("userId", "==", userId)
-    .orderBy("createdAt", "desc")
-    .get();
+  if (!userId) {
+    console.warn("getInterviewsByUserId called without userId");
+    return null;
+  }
 
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[];
+  try {
+    const snapshot = await db
+      .collection("interviews")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Interview[];
+  } catch (error) {
+    console.error("Error fetching interviews by userId:", error);
+    return null;
+  }
 }

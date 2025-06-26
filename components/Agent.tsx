@@ -118,12 +118,18 @@ const Agent = ({
     setCallStatus(CallStatus.CONNECTING);
 
     if (type === "generate") {
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-        variableValues: {
-          username: userName,
-          userid: userId,
-        },
-      });
+      await vapi.start(
+        undefined, // sessionId
+        undefined, // agentId
+        undefined, // toolId
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // workflowId
+        {
+          variableValues: {
+            username: userName,
+            userid: userId,
+          },
+        }
+      );
     } else {
       let formattedQuestions = "";
       if (questions) {
@@ -132,11 +138,17 @@ const Agent = ({
           .join("\n");
       }
 
-      await vapi.start(interviewer, {
-        variableValues: {
-          questions: formattedQuestions,
-        },
-      });
+      await vapi.start(
+        undefined, // sessionId
+        interviewer, // agentId
+        undefined, // toolId
+        undefined, // workflowId
+        {
+          variableValues: {
+            questions: formattedQuestions,
+          },
+        }
+      );
     }
   };
 
@@ -196,14 +208,13 @@ const Agent = ({
 
       <div className="w-full flex justify-center">
         {callStatus !== "ACTIVE" ? (
-          <button className="relative btn-call" onClick={() => handleCall()}>
+          <button className="relative btn-call" onClick={handleCall}>
             <span
               className={cn(
                 "absolute animate-ping rounded-full opacity-75",
                 callStatus !== "CONNECTING" && "hidden"
               )}
             />
-
             <span className="relative">
               {callStatus === "INACTIVE" || callStatus === "FINISHED"
                 ? "Call"
@@ -211,7 +222,7 @@ const Agent = ({
             </span>
           </button>
         ) : (
-          <button className="btn-disconnect" onClick={() => handleDisconnect()}>
+          <button className="btn-disconnect" onClick={handleDisconnect}>
             End
           </button>
         )}
