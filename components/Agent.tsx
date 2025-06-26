@@ -101,10 +101,10 @@ const Agent = ({
 
     if (type === "generate") {
       await vapi.start(
-        undefined, // sessionId
-        undefined, // agentId
-        undefined, // toolId
-        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // Workflow ID for generation
+        undefined,
+        undefined,
+        undefined,
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
         {
           variableValues: {
             username: userName,
@@ -115,17 +115,16 @@ const Agent = ({
     } else {
       let formattedQuestions = "";
       if (questions) {
-        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
+        formattedQuestions = questions
+          .map((question) => `- ${question}`)
+          .join("\n");
       }
 
-      await vapi.start(
-        process.env.NEXT_PUBLIC_VAPI_AGENT_ID!, // ✅ Proper Assistant/Agent ID from env
-        {
-          variableValues: {
-            questions: formattedQuestions,
-          },
-        }
-      );
+      await vapi.start(interviewer, {
+        variableValues: {
+          questions: formattedQuestions,
+        },
+      });
     }
   };
 
