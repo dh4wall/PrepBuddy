@@ -97,36 +97,37 @@ const Agent = ({
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
   const handleCall = async () => {
-  setCallStatus(CallStatus.CONNECTING);
+    setCallStatus(CallStatus.CONNECTING);
 
-  if (type === "generate") {
-    // ✅ Correct workflow call
-    await vapi.start(
-      undefined, // sessionId
-      undefined, // agentId
-      undefined, // toolId
-      process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
-      {
-        variableValues: {
-          username: userName,
-          userid: userId,
-        },
+    if (type === "generate") {
+      await vapi.start(
+        undefined, // sessionId
+        undefined, // agentId
+        undefined, // toolId
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // Workflow ID for generation
+        {
+          variableValues: {
+            username: userName,
+            userid: userId,
+          },
+        }
+      );
+    } else {
+      let formattedQuestions = "";
+      if (questions) {
+        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
       }
-    );
-  } else {
-    let formattedQuestions = "";
-    if (questions) {
-      formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
-    }
 
-    // ✅ Correct agent call with new object syntax
-    await vapi.start(interviewer, {
-      variableValues: {
-        questions: formattedQuestions,
-      },
-    });
-  }
-};
+      await vapi.start(
+        process.env.NEXT_PUBLIC_VAPI_AGENT_ID!, // ✅ Proper Assistant/Agent ID from env
+        {
+          variableValues: {
+            questions: formattedQuestions,
+          },
+        }
+      );
+    }
+  };
 
 
   const handleDisconnect = () => {
