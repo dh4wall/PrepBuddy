@@ -63,6 +63,16 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+.fixed-call-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50; /* High enough to stay above all content */
+}
+
+
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
