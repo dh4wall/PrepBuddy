@@ -88,33 +88,77 @@
 // export const { auth, db } = firebaseAdmin;
 
 
+
+
+//-------->third fix
+
+// // firebase/admin.ts
+// import { initializeApp, getApps, getApp } from "firebase-admin/app";
+// import { getAuth } from "firebase-admin/auth";
+// import { getFirestore } from "firebase-admin/firestore";
+// import { cert } from "firebase-admin/app";
+
+// let dbInstance;
+// let authInstance;
+
+// if (!getApps().length) {
+//   const app = initializeApp({
+//     credential: cert({
+//       projectId: process.env.FIREBASE_PROJECT_ID,
+//       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+//       privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+//     }),
+//   });
+
+//   dbInstance = getFirestore(app);
+//   dbInstance.settings({ ignoreUndefinedProperties: true }); // ✅ Only once
+
+//   authInstance = getAuth(app);
+// } else {
+//   const app = getApp();
+//   dbInstance = getFirestore(app);
+//   authInstance = getAuth(app);
+// }
+
+// export const db = dbInstance;
+// export const auth = authInstance;
+
+
+
+
+
+//------->fourth fix
+
+
 // firebase/admin.ts
 import { initializeApp, getApps, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { cert } from "firebase-admin/app";
 
-let dbInstance;
-let authInstance;
-
+let app;
 if (!getApps().length) {
-  const app = initializeApp({
+  app = initializeApp({
     credential: cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
     }),
   });
-
-  dbInstance = getFirestore(app);
-  dbInstance.settings({ ignoreUndefinedProperties: true }); // ✅ Only once
-
-  authInstance = getAuth(app);
 } else {
-  const app = getApp();
-  dbInstance = getFirestore(app);
-  authInstance = getAuth(app);
+  app = getApp();
 }
 
-export const db = dbInstance;
-export const auth = authInstance;
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+try {
+  db.settings({ ignoreUndefinedProperties: true });
+} catch (error: any) {
+  if (!error.message.includes("already been initialized")) {
+    console.error("Firestore settings error:", error.message);
+  }
+}
+
+export { auth, db };
+
