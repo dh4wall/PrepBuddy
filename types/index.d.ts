@@ -36,7 +36,7 @@ interface User {
   name: string;
   email: string;
   id: string;
-  photoURL?: string; // ✅ Added this
+  profileURL?: string; // ✅ Added this
 }
 
 interface InterviewCardProps {
@@ -83,7 +83,9 @@ interface SignUpParams {
   name: string;
   email: string;
   password: string;
+  profileURL?: string; // ✅ Add this line
 }
+
 
 type FormType = "sign-in" | "sign-up";
 

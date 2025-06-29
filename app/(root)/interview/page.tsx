@@ -10,8 +10,8 @@ const Page = async () => {
 
       <Agent
         userName={user?.name!}
-        userId={user?.id}
-        profileImage={user?.photoURL} 
+        userId={user?.id ?? ""}
+        profileURL={user?.profileURL} // ✅ Corrected here
         type="generate"
       />
     </>

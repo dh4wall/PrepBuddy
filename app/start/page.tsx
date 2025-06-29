@@ -3,18 +3,26 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { useState } from 'react';
 
 const LandingPage = () => {
 
   const router = useRouter();
-  
+  const pathname = usePathname();
+  const [animationKey, setAnimationKey] = useState(0);
+
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
   const howItWorksRef = useRef(null);
   const statsRef = useRef(null);
   const testimonialsRef = useRef(null);
   const ctaRef = useRef(null);
+
+  useEffect(() => {
+    setAnimationKey((prev) => prev + 1);
+  }, [pathname]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -85,20 +93,20 @@ const LandingPage = () => {
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      gsap.globalTimeline.clear();
     };
-  }, []);
+  }, [animationKey]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-dark-100 via-dark-200 to-dark-300 text-white overflow-hidden">
+    <div key={animationKey} className="min-h-screen bg-gradient-to-b from-dark-100 via-dark-200 to-dark-300 text-white overflow-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-dark-100/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <div className="text-2xl font-bold bg-gradient-to-r from-primary-200 to-primary-100 bg-clip-text text-transparent">
-                PrepBuddy
-              </div>
+              <Image src="/logo.svg" alt="PrepBuddy Logo" width={38} height={32} />
+          <h2 ><span className="text-primary-100">Prep</span><span className="text-orange-200">Buddy</span></h2>
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">

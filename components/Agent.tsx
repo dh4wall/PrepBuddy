@@ -21,6 +21,16 @@ interface SavedMessage {
   content: string;
 }
 
+interface AgentProps {
+  userName: string;
+  userId: string;
+  interviewId?: string;
+  feedbackId?: string;
+  type: string;
+  questions?: string[];
+  profileURL?: string;
+}
+
 const Agent = ({
   userName,
   userId,
@@ -28,7 +38,7 @@ const Agent = ({
   feedbackId,
   type,
   questions,
-  profileImage, // ✅ Accept it here
+  profileURL, // ✅ Updated variable name
 }: AgentProps) => {
   const router = useRouter();
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -128,7 +138,6 @@ const Agent = ({
     }
   };
 
-
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
     vapi.stop();
@@ -154,7 +163,7 @@ const Agent = ({
         <div className="card-border">
           <div className="card-content">
             <Image
-              src={profileImage || "/user-avatar.png"} // ✅ Use passed image here
+              src={profileURL || "/user-avatar.png"} // ✅ Corrected here
               alt="profile-image"
               width={120}
               height={120}
