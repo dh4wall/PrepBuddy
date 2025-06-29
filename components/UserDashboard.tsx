@@ -198,7 +198,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </div>
       )}
 
-      {/* {activeTab === 'analytics' && (
+      {activeTab === 'analytics' && (
         <div className="space-y-8">
           <ChartCard title="Score Progress Over Time"><Line data={avgScoreChartData} options={chartOptions} /></ChartCard>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -216,9 +216,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             </ChartCard>
           </div>
         </div>
-      )} */}
+      )}
 
-      {activeTab === 'analytics' && (
+      {/* {activeTab === 'analytics' && (
   <div className="card-border">
     <div className="card p-6 overflow-x-auto">
       <h3 className="text-white mb-6">Interview History</h3>
@@ -252,7 +252,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       </table>
     </div>
   </div>
-)}
+)} */}
 
 
       {activeTab === 'activity' && <ActivityHeatmap scores={scores} />}
