@@ -115,7 +115,6 @@ const AuthForm = ({ type }: { type: FormType }) => {
           name: result.user.displayName || "User",
           email: result.user.email || "No Email",
           password: randomPassword,
-          profileURL: result.user.photoURL || "",
         });
       }
 
@@ -180,8 +179,6 @@ const AuthForm = ({ type }: { type: FormType }) => {
           <span className="mx-4 text-gray-500">OR</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
-
-        
         <Button className="btn mt-4" onClick={handleGoogleSignIn}>
           Sign in with Google
         </Button>
