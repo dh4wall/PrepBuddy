@@ -49,7 +49,9 @@ const Sidebar = ({ user }: { user: { id: string; name: string; email: string; pr
     }
   };
 
-  const handleProfile = () => { console.log('Profile clicked'); closeSidebar(); };
+  const handleProfile = () => { console.log('Profile clicked'); 
+       router.push(`/profile`);
+   };
   const handleSubscription = () => { console.log('Subscription clicked'); closeSidebar(); };
 
   return (

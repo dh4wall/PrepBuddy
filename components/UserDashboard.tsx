@@ -332,6 +332,8 @@ import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Settings, Calendar, TrendingUp, Award, Activity, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import Sidebar from '@/components/Sidebar'
 
 interface UserDashboardProps {
   user: {
@@ -351,6 +353,25 @@ interface ScoreData {
   'Problem-Solving'?: number
   'Cultural & Role Fit'?: number
   'Confidence & Clarity'?: number
+}
+
+interface LineChartData {
+  date: string
+  score: number
+}
+
+interface SubjectData {
+  subject: string
+  value: number
+  remaining: number
+}
+
+interface StreakData {
+  date: string
+  count: number
+  day: number
+  dateObj: Date
+  month: number
 }
 
 const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
@@ -379,24 +400,27 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const maxScore = scores.length ? Math.max(...scores.map(s => s.averageScore || 0)) : 0
   const totalInterviews = scores.length
 
-  const subjects = ['Communication Skills', 'Technical Knowledge', 'Problem-Solving', 'Cultural & Role Fit', 'Confidence & Clarity']
+  const subjects = ['Communication Skills', 'Technical Knowledge', 'Problem-Solving', 'Cultural & Role Fit', 'Confidence & Clarity'] as const
+  type SubjectKey = typeof subjects[number]
 
-  const lineChartData = scores.map(s => ({
+  const lineChartData: LineChartData[] = scores.map(s => ({
     date: new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     score: s.averageScore || 0
   }))
 
-  const getLatestSubjectData = () => {
-    if (!scores.length) return subjects.map(subject => ({ subject, value: 0, remaining: 100 }))
+  const getLatestSubjectData = (): SubjectData[] => {
+    if (!scores.length) {
+      return subjects.map(subject => ({ subject, value: 0, remaining: 100 }))
+    }
     const latest = scores[scores.length - 1]
-    return subjects.map(key => ({
-      subject: key,
-      value: (latest[key as keyof ScoreData] as number) || 0,
-      remaining: 100 - ((latest[key as keyof ScoreData] as number) || 0)
+    return subjects.map(subject => ({
+      subject,
+      value: (latest[subject] as number | undefined) ?? 0,
+      remaining: 100 - ((latest[subject] as number | undefined) ?? 0)
     }))
   }
 
-  const getStreakData = () => {
+  const getStreakData = (): StreakData[] => {
     const today = new Date()
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1)
     const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, 0)
@@ -407,7 +431,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       streakMap[date] = (streakMap[date] || 0) + 1
     })
 
-    const streakArray = []
+    const streakArray: StreakData[] = []
     const currentDateIter = new Date(startDate)
     
     while (currentDateIter <= endDate) {
@@ -428,17 +452,16 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const streakData = getStreakData()
   const maxCount = Math.max(...streakData.map(d => d.count), 1)
   
-  const monthGroups = streakData.reduce((acc: { [key: string]: typeof streakData }, day) => {
+  const monthGroups = streakData.reduce((acc: { [key: string]: StreakData[] }, day) => {
     const monthKey = `${day.dateObj.getFullYear()}-${day.dateObj.getMonth()}`
     if (!acc[monthKey]) acc[monthKey] = []
     acc[monthKey].push(day)
     return acc
   }, {})
 
-  const getWeeksForMonth = (days: typeof streakData) => {
-    type DayOrNull = (typeof days)[number] | null
-    const weeks: DayOrNull[][] = []
-    let currentWeek: DayOrNull[] = []
+  const getWeeksForMonth = (days: StreakData[]): (StreakData | null)[][] => {
+    const weeks: (StreakData | null)[][] = []
+    let currentWeek: (StreakData | null)[] = []
     
     days.forEach((day, index) => {
       if (index === 0) {
@@ -461,8 +484,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
     return weeks
   }
 
-  const getIntensityColor = (count: number) => {
-    if (count === 0) return 'bg-gray-800 border-gray-700'
+  const getIntensityColor = (count: number): string => {
+    if (count === 0) return 'bg-dark-300 border-dark-300'
     const intensity = count / maxCount
     if (intensity <= 0.25) return 'bg-green-900 border-green-800'
     if (intensity <= 0.5) return 'bg-green-700 border-green-600'
@@ -470,9 +493,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
     return 'bg-green-400 border-green-300'
   }
 
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
+  const navigateMonth = (direction: 'prev' | 'next'): void => {
     const newDate = new Date(currentDate)
     newDate.setMonth(newDate.getMonth() + (direction === 'prev' ? -1 : 1))
     setCurrentDate(newDate)
@@ -480,14 +503,21 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen dark-gradient flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen dark-gradient text-white">
+      <nav className="flex justify-between items-center p-4 border-b border-border">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.svg" alt="MockMate Logo" width={38} height={32} />
+          <h2><span className="text-primary-100">Prep</span><span className="text-orange-200">Buddy</span></h2>
+        </Link>
+        <Sidebar user={user} />
+      </nav>
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -509,7 +539,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="dark-gradient rounded-xl p-6 border-gradient">
             <div className="flex items-center gap-3 mb-3">
               <Activity className="w-6 h-6 text-green-500" />
               <h3 className="text-lg font-semibold">Total Interviews</h3>
@@ -518,7 +548,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             <p className="text-gray-400 text-sm mt-1">Completed sessions</p>
           </div>
           
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="dark-gradient rounded-xl p-6 border-gradient">
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="w-6 h-6 text-blue-500" />
               <h3 className="text-lg font-semibold">Average Score</h3>
@@ -527,7 +557,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             <p className="text-gray-400 text-sm mt-1">Overall performance</p>
           </div>
           
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="dark-gradient rounded-xl p-6 border-gradient">
             <div className="flex items-center gap-3 mb-3">
               <Award className="w-6 h-6 text-yellow-500" />
               <h3 className="text-lg font-semibold">Best Score</h3>
@@ -538,7 +568,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </div>
 
         {/* Score Progress Chart */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="dark-gradient rounded-xl p-6 border-gradient">
           <h3 className="text-xl font-semibold mb-6 flex items-center gap-3">
             <TrendingUp className="w-6 h-6 text-green-500" />
             Score Progress Over Time
@@ -571,7 +601,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </div>
 
         {/* Subject Breakdown */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="dark-gradient rounded-xl p-6 border-gradient">
           <h3 className="text-xl font-semibold mb-6">Latest Interview Breakdown</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {getLatestSubjectData().map((item, i) => {
@@ -613,7 +643,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </div>
 
         {/* LeetCode Style Streak Calendar */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="dark-gradient rounded-xl p-6 border-gradient">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Calendar className="w-6 h-6 text-green-500" />
@@ -680,7 +710,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           <div className="flex items-center justify-between mt-6 text-xs text-gray-400">
             <span>Less</span>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded border bg-gray-800 border-gray-700"></div>
+              <div className="w-3 h-3 rounded border bg-dark-300 border-dark-300"></div>
               <div className="w-3 h-3 rounded border bg-green-900 border-green-800"></div>
               <div className="w-3 h-3 rounded border bg-green-700 border-green-600"></div>
               <div className="w-3 h-3 rounded border bg-green-500 border-green-400"></div>
