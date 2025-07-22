@@ -35,10 +35,19 @@
 
 ---
 
+### 🧩 Architecture Diagram
+
+<p align="center">
+  <img src="./screenshots/archidiag.png" width="600" alt="Architecture Diagram"/>
+</p>
+
+---
+
+
 ## 📸 Preview
 
-> Add images/screenshots in your repo and reference them here like:
 
-```md
-![Home Page](./screenshots/archidiag.png)
-![Interview Agent](./screenshots/agent.png)
+
+![Home Page](./screenshots/home.png)
+![Interview Agent](./screenshots/interview.png)
+![Profile Page](./screenshots/profie.png)
